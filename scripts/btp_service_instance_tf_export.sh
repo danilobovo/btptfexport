@@ -4,22 +4,15 @@
 # Author: Danilo Bovo <bovodanilo@gmail.com>
 # Version: 1.0
 #set -x
-VERSION="Version: 1.0"
-
-# Check if the btp-cli is installed
-if ! command -v btp &> /dev/null; then
-    echo "btp-cli could not be found. Please install it and configure it to use this script."
-    exit 1
-fi
-
-# Check if the btp-cli is configured
-if [ -z "$(btp --format json list accounts/subaccounts)" ]; then
-    echo "btp-cli is not configured. Please configure it to use this script."
-    exit 1
-fi
+VERSION="Version: 1.2"
 
 BASEDIR=$(dirname $0)
-. $BASEDIR/utils.sh
+if ! command -v _jq &> /dev/null; then
+    source $BASEDIR/utils.sh
+fi
+
+# Check if the btp-cli is installed and configured
+_check_btp_cli
 
 _generate_tf_code_for_service_instance() {
     echo "data \"btp_subaccount_service_offerings\" \"all\" {"
@@ -71,8 +64,17 @@ case $1 in
         fi
         _generate_tf_code_for_service_instance $2
         ;;
+    -ga | --global-account)
+        if [ -z $2 ]; then
+            echo "The global account subdomain is missing."
+            exit 1
+        fi
+        exit 0
     -all)
-        exit
+        for subaccount in $(btp --format json list accounts/subaccounts | jq -r '.value[] | @base64'); do
+            sa_id=$(_jq $subaccount '.guid')
+            _generate_tf_code_for_service_instance $sa_id
+        done
         ;;
     *)
         _usage

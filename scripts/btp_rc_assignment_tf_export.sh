@@ -6,25 +6,13 @@
 #set -x
 VERSION="Version: 1.0"
 
-_version() {
-    echo "$VERSION"
-    exit 0
-}
-
-# Check if the btp-cli is installed
-if ! command -v btp &> /dev/null; then
-    echo "btp-cli could not be found. Please install it and configure it to use this script."
-    exit 1
-fi
-
-# Check if the btp-cli is configured
-if [ -z "$(btp --format json list accounts/subaccounts)" ]; then
-    echo "btp-cli is not configured. Please configure it to use this script."
-    exit 1
-fi
-
 BASEDIR=$(dirname $0)
-. $BASEDIR/utils.sh
+if ! command -v _jq &> /dev/null; then
+    source $BASEDIR/utils.sh
+fi
+
+# Check if the btp-cli is installed and configured
+_check_btp_cli
 
 _generate_tf_code_for_role_collection_assignment_subaccount(){
     # Generate the terraform code for the subaccount with the given GUID
@@ -83,7 +71,10 @@ case $1 in
         _generate_tf_code_for_role_collection_assignment_global_account $2
         ;;
     -all)
-        exit
+        for subaccount in $(btp --format json list accounts/subaccounts | jq -r '.value[] | @base64'); do
+            sa_id=$(_jq $subaccount '.guid')
+            _generate_tf_code_for_role_collection_assignment_subaccount $sa_id
+        done
         ;;
     *)
         _usage
