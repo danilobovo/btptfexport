@@ -3,23 +3,15 @@
 # It`s necessary to btp-cli installed and configured to use this script.
 # Author: Danilo Bovo <bovodanilo@gmail.com>
 # Version: 1.2
-
 VERSION="Version: 1.2"
 
-# Check if the btp-cli is installed
-if ! command -v btp &> /dev/null; then
-    echo "btp-cli could not be found. Please install it and configure it to use this script."
-    exit 1
-fi
-
-# Check if the btp-cli is configured
-if [ -z "$(btp --format json list accounts/subaccounts)" ]; then
-    echo "btp-cli is not configured. Please configure it to use this script."
-    exit 1
-fi
-
 BASEDIR=$(dirname $0)
-. $BASEDIR/utils.sh
+if ! command -v _jq &> /dev/null; then
+    source $BASEDIR/utils.sh
+fi
+
+# Check if the btp-cli is installed and configured
+_check_btp_cli
 
 _print_subaccount_tf_code() {
     # Code to generate the terraform code for the subaccount
@@ -79,7 +71,7 @@ _generate_tf_code_for_subaccount() {
 _generate_tf_code_for_all_subaccounts() {
     # Generate the terraform code for all subaccounts
     for row in $(btp --format json list accounts/subaccounts | jq -r '.value[] | @base64'); do
-        _print_subaccount_code $row
+        _print_subaccount_tf_code $row
     done
 }
 
@@ -96,6 +88,14 @@ case $1 in
             exit 1
         fi
         _generate_tf_code_for_subaccount $2
+        ;;
+    -ga | --global-account)
+        if [ -z $2 ]; then
+            echo "The global account subdomain is missing."
+            exit 1
+        fi
+        echo "Not implemented yet."
+        exit 0
         ;;
     -all)
         _generate_tf_code_for_all_subaccounts

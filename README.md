@@ -28,6 +28,14 @@ At this moment the script is working for:
 > [!NOTE]
 > The scripts is getting the information for [Subaccount Service Instance](https://registry.terraform.io/providers/SAP/btp/latest/docs/resources/subaccount_service_instance), but I`m not able to import it in the terraform state due to restrictions stated in [Documentation](https://registry.terraform.io/providers/SAP/btp/latest/docs/resources/subaccount_service_instance#restriction).
 
+## Prerequisites
+
+- Linux Shell terminal.
+
+- btp cli installed.
+
+- btp user with permission to read all information using btp cli.
+
 ## Usage
 
 ### Step 1: [btp cli](https://developers.sap.com/tutorials/cp-sapcp-getstarted.html)
@@ -46,10 +54,31 @@ btp --info
 
 ### Step 2: Download the scripts
 
-Download the root script for all resources
+Clone this repo in the linux terminal you are using.
+```bash
+git clone git@github.com:danilobovo/btptfexport.git
+```
 
 ### Step 3: Run the script
 
-Just run the command btptfexport.sh or any of the other subscripts.
+Just run the command btptfexport.sh
+```bash
+cd btptfexport
+./btptfexport.sh -sa <SUBACCOUNT-ID>
+```
+
+You can run any subscript in the folder `scripts` to generate one type of BTP resource
+```bash
+./scripts/btp_subaccount_tf_export.sh -sa <SUBACCOUNT-ID>
+```
+
+To get the SUBACCOUNT-ID value, use:
+```bash
+btp list accounts/subaccounts
+```
 You can redirect the output to a tf file and organize the as your preference.
+```bash
+./btptfexport.sh -sa <SUBACCOUNT-ID> > subaccount-resources.tf
+./scripts/btp_subaccount_tf_export.sh -sa <SUBACCOUNT-ID> > subaccount.tf
+```
 
