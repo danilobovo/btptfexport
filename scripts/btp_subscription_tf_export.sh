@@ -43,7 +43,7 @@ _generate_tf_code_for_subscription() {
 }
 
 if [ "$0" != "$BASH_SOURCE" ]; then
-    exit 0
+    return 0
 fi
 
 case $1 in
