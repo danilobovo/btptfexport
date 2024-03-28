@@ -42,6 +42,10 @@ _generate_tf_code_for_subscription() {
     done
 }
 
+if [ "$0" != "$BASH_SOURCE" ]; then
+    return 0
+fi
+
 case $1 in
     -h | --help)
         _usage

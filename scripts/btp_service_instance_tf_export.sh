@@ -27,12 +27,12 @@ _generate_tf_code_for_service_instance() {
     for service_instance in $(btp --format json list services/instance -sa $1 | jq -r '.[] | @base64'); do
         name_slug="$(_jq $service_instance '.name')"
         id="$(_jq $service_instance '.id')"
-        instances_retrievable=$(btp --format json get services/offering $(btp get services/plan $(btp get services/instance $id | awk '/^service_plan_id:/ { print $NF }') | awk '/^service_offering_id:/ { print $NF }') | jq '.instances_retrievable')
+        instances_retrievable=$(btp --format json get services/offering $(btp get services/plan $(btp get services/instance $id 2>/dev/null| awk '/^service_plan_id:/ { print $NF }') 2>/dev/null | awk '/^service_offering_id:/ { print $NF }') 2>/dev/null | jq '.instances_retrievable')
         if [ "$instances_retrievable" == "false" ]; then
             echo "# The service instance $name_slug is not possible to import the state."
             continue
         fi
-        parameters=$(btp --format json get services/instance $id --subaccount $1 --show-parameters)
+        parameters=$(btp --format json get services/instance $id --subaccount $1 --show-parameters 2>/dev/null)
         echo "# terraform code for $name_slug service instance"
         echo "resource \"btp_subaccount_service_instance\" \"$name_slug\" {"
         echo "  subaccount_id    = data.btp_subaccount_service_offerings.all.subaccount_id"
@@ -50,6 +50,9 @@ _generate_tf_code_for_service_instance() {
     done
 }
 
+if [ "$0" != "$BASH_SOURCE" ]; then
+    return 0
+fi
 case $1 in
     -h | --help)
         _usage
@@ -70,6 +73,7 @@ case $1 in
             exit 1
         fi
         exit 0
+        ;;
     -all)
         for subaccount in $(btp --format json list accounts/subaccounts | jq -r '.value[] | @base64'); do
             sa_id=$(_jq $subaccount '.guid')
