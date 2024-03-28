@@ -40,6 +40,10 @@ _generate_tf_code_for_environment() {
     done
 }
 
+if [ "$0" != "$BASH_SOURCE" ]; then
+    exit 0
+fi
+
 case $1 in
     -h | --help)
         _usage

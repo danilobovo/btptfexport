@@ -17,6 +17,9 @@ _check_btp_cli
 _generate_tf_code_for_role_collection_subaccount() {
     # Generate the terraform code for the subaccount with the given GUID
     sa_name=$(btp --format json get accounts/subaccounts $1 | jq -r '.displayName')
+    echo "# ------------------------------------------------------------------------------------------------------"
+    echo "# Creation of role collection for subaccount account $sa_name"
+    echo "# ------------------------------------------------------------------------------------------------------"
     for rolecollection in $(btp --format json list security/role-collection -sa $1 | jq -r '.[] | @base64'); do
         # Code to generate the terraform code for the role
         name=$(_jq $rolecollection '.name')
@@ -47,6 +50,9 @@ _generate_tf_code_for_role_collection_subaccount() {
 
 _generate_tf_code_for_role_collection_global_account() {
     # Generate the terraform code for the subaccount with the given GUID
+    echo "# ------------------------------------------------------------------------------------------------------"
+    echo "# Creation of role collection for global account $1"
+    echo "# ------------------------------------------------------------------------------------------------------"
     for rolecollection in $(btp --format json list security/role-collection -ga $1 | jq -r '.[] | @base64'); do
         # Code to generate the terraform code for the role
         name=$(_jq $rolecollection '.name')
@@ -73,6 +79,10 @@ _generate_tf_code_for_role_collection_global_account() {
         echo ""
     done
 }
+
+if [ "$0" != "$BASH_SOURCE" ]; then
+    exit 0
+fi
 
 case $1 in
     -h | --help)

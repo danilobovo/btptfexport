@@ -86,8 +86,6 @@ _generate_tf_code_for_cloudfoundry_all() {
     done
 }
 
-
-
 _usage() {
     echo "Usage: $0 [option]"
     echo "Options:"
@@ -96,6 +94,11 @@ _usage() {
     echo "  -a, -all            Generate the terraform code for all orgs on cloudfoundry"
     echo "  -o, -org <org_name> Generate the terraform code for the org on cloudfoundry"
 }
+
+if [ "$0" != "$BASH_SOURCE" ]; then
+    exit 0
+fi
+
 
 case $1 in
     -h | --help)

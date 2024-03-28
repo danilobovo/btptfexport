@@ -8,15 +8,16 @@ VERSION="Version: 1.2"
 
 BASEDIR=$(dirname $0)
 source $BASEDIR/scripts/utils.sh
-source $BASEDIR/scripts/btp_environment_tf_export.sh
-source $BASEDIR/scripts/btp_rc_assignment_tf_export.sh
-source $BASEDIR/scripts/btp_role_collection_tf_export.sh
-source $BASEDIR/scripts/btp_service_instance_tf_export.sh
-source $BASEDIR/scripts/btp_subaccount_tf_export.sh
-source $BASEDIR/scripts/btp_subscription_tf_export.sh
 
 # Check if the btp-cli is installed and configured
 _check_btp_cli
+
+source $BASEDIR/scripts/btp_subaccount_tf_export.sh
+source $BASEDIR/scripts/btp_subscription_tf_export.sh
+source $BASEDIR/scripts/btp_environment_tf_export.sh
+source $BASEDIR/scripts/btp_role_collection_tf_export.sh
+source $BASEDIR/scripts/btp_rc_assignment_tf_export.sh
+source $BASEDIR/scripts/btp_service_instance_tf_export.sh
 
 case $1 in
     -h | --help)
@@ -33,10 +34,9 @@ case $1 in
         _generate_tf_code_for_subaccount $2
         _generate_tf_code_for_subscription $2
         _generate_tf_code_for_environment $2
-        _generate_tf_code_for_service_instance $2
         _generate_tf_code_for_role_collection_subaccount $2
-        _generate_tf_code_for_user_rc $2
         _generate_tf_code_for_role_collection_assignment_subaccount $2
+        _generate_tf_code_for_service_instance $2
     ;;
     -ga | --global-account)
         if [ -z $2 ]; then
@@ -52,10 +52,9 @@ case $1 in
             _generate_tf_code_for_subaccount $sa_id
             _generate_tf_code_for_subscription $sa_id
             _generate_tf_code_for_environment $sa_id
-            _generate_tf_code_for_service_instance $sa_id
             _generate_tf_code_for_role_collection_subaccount $sa_id
-            _generate_tf_code_for_user_rc $sa_id
             _generate_tf_code_for_role_collection_assignment_subaccount $sa_id
+            _generate_tf_code_for_service_instance $sa_id
         done
     ;;
     *)
