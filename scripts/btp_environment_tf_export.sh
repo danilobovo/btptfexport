@@ -7,7 +7,7 @@
 VERSION="Version: 1.2"
 
 BASEDIR=$(dirname $0)
-if ! command -v _jq &> /dev/null; then
+if ! command -v _jq &>/dev/null; then
     source $BASEDIR/utils.sh
 fi
 
@@ -16,6 +16,7 @@ _check_btp_cli
 
 _generate_tf_code_for_environment() {
     sa_name=$(btp --format json get accounts/subaccounts $1 | jq -r '.displayName')
+    sa_name_internal=$(echo $sa_name | tr '[ ]' '[\-]')
     # Generate the terraform code for the subaccount with the given GUID
     echo "# ------------------------------------------------------------------------------------------------------"
     echo "# Creation of subaccount $sa_name environment instance"
@@ -28,7 +29,7 @@ _generate_tf_code_for_environment() {
         echo "  name             = \"$(_jq $environment '.name')\""
         echo "  plan_name        = \"$(_jq $environment '.planName')\""
         echo "  service_name     = \"$(_jq $environment '.serviceName')\""
-        echo "  subaccount_id    = btp_subaccount.$sa_name.id"
+        echo "  subaccount_id    = btp_subaccount.$sa_name_internal.id"
         parameters=$(_jq $environment '.parameters')
         [ "$parameters" != "null" ] && echo "  parameters       = \"$(echo $parameters | sed "s/\"/\\\\\"/g")\""
         landscape_label=$(_jq $environment '.landscapeLabel')
@@ -45,35 +46,33 @@ if [ "$0" != "$BASH_SOURCE" ]; then
 fi
 
 case $1 in
-    -h | --help)
-        _usage
-        ;;
-    -v | --version)
-        _version
-        ;;
-    -sa | --subaccount)
-        if [ -z $2 ]; then
-            echo "The subaccount GUID is missing."
-            exit 1
-        fi
-        _generate_tf_code_for_environment $2
-        ;;
-    -ga | --global-account)
-        if [ -z $2 ]; then
-            echo "The global account subdomain is missing."
-            exit 1
-        fi
-        exit 0
-        ;;
-    -all)
-        for subaccount in $(btp --format json list accounts/subaccounts | jq -r '.value[] | @base64'); do
-            sa_id=$(_jq $subaccount '.guid')
-            _generate_tf_code_for_environment $sa_id
-        done
-        ;;
-    *)
-        _usage
-        ;;
+-h | --help)
+    _usage
+    ;;
+-v | --version)
+    _version
+    ;;
+-sa | --subaccount)
+    if [ -z $2 ]; then
+        echo "The subaccount GUID is missing."
+        exit 1
+    fi
+    _generate_tf_code_for_environment $2
+    ;;
+-ga | --global-account)
+    if [ -z $2 ]; then
+        echo "The global account subdomain is missing."
+        exit 1
+    fi
+    exit 0
+    ;;
+-all)
+    for subaccount in $(btp --format json list accounts/subaccounts | jq -r '.value[] | @base64'); do
+        sa_id=$(_jq $subaccount '.guid')
+        _generate_tf_code_for_environment $sa_id
+    done
+    ;;
+*)
+    _usage
+    ;;
 esac
-
-
