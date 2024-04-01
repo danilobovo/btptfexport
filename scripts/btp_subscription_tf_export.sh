@@ -17,9 +17,9 @@ _check_btp_cli
 _generate_tf_code_for_subscription() {
     # Generate the terraform code for the subaccount with the given GUID
     sa_name=$(btp --format json get accounts/subaccounts $1 | jq -r '.displayName')
-    sa_name_internal=$(echo $sa_name | tr '[ ]' '[\-]')
+    sa_name_slug=$(_slugify "$sa_name")
     echo "# ------------------------------------------------------------------------------------------------------"
-    echo "# Creation of subaccount $sa_name_internal subscription"
+    echo "# Creation of subaccount $sa_name_slug subscription"
     echo "# ------------------------------------------------------------------------------------------------------"
     for subscription in $(btp --format json list accounts/subscription -sa $1 | jq -r '.applications[] | @base64'); do
         name=$(_jq $subscription '.displayName')
@@ -30,7 +30,7 @@ _generate_tf_code_for_subscription() {
         fi
         echo "# terraform code for $(_jq $subscription '.displayName') subscription"
         echo "resource \"btp_subaccount_subscription\" \"$name_slug\" {"
-        echo "  subaccount_id   = btp_subaccount.$sa_name_internal.id"
+        echo "  subaccount_id   = btp_subaccount.$sa_name_slug.id"
         echo "  app_name        = \"$(_jq $subscription '.appName')\""
         echo "  plan_name       = \"$(_jq $subscription '.planName')\""
         parameters=$(_jq $subscription '.parameters')

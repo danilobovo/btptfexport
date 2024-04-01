@@ -16,27 +16,27 @@ _check_btp_cli
 
 _generate_tf_code_for_environment() {
     sa_name=$(btp --format json get accounts/subaccounts $1 | jq -r '.displayName')
-    sa_name_internal=$(echo $sa_name | tr '[ ]' '[\-]')
+    sa_name_slug=$(_slugify "$sa_name")
     # Generate the terraform code for the subaccount with the given GUID
     echo "# ------------------------------------------------------------------------------------------------------"
     echo "# Creation of subaccount $sa_name environment instance"
     echo "# ------------------------------------------------------------------------------------------------------"
     for environment in $(btp --format json list accounts/environment-instance -sa $1 | jq -r '.environmentInstances[] | @base64'); do
-        name_slug="$(_jq $environment '.serviceName')-$(_jq $environment '.name')"
-        echo "# terraform code for $name_slug environment instance"
-        echo "resource \"btp_subaccount_environment_instance\" \"$name_slug\" {"
+        environment_slug="$(_jq $environment '.serviceName')-$(_jq $environment '.name')"
+        echo "# terraform code for $environment_slug environment instance"
+        echo "resource \"btp_subaccount_environment_instance\" \"$environment_slug\" {"
         echo "  environment_type = \"$(_jq $environment '.environmentType')\""
         echo "  name             = \"$(_jq $environment '.name')\""
         echo "  plan_name        = \"$(_jq $environment '.planName')\""
         echo "  service_name     = \"$(_jq $environment '.serviceName')\""
-        echo "  subaccount_id    = btp_subaccount.$sa_name_internal.id"
+        echo "  subaccount_id    = btp_subaccount.$sa_name_slug.id"
         parameters=$(_jq $environment '.parameters')
         [ "$parameters" != "null" ] && echo "  parameters       = \"$(echo $parameters | sed "s/\"/\\\\\"/g")\""
         landscape_label=$(_jq $environment '.landscapeLabel')
         [ "$landscape_label" != "null" ] && echo "  landscape_label  = \"$landscape_label\""
         echo "}"
-        echo "# Command to import the state of $name_slug environment instance"
-        echo "# terraform import btp_subaccount_environment_instance.$name_slug $1,$(_jq $environment '.id')"
+        echo "# Command to import the state of $environment_slug environment instance"
+        echo "# terraform import btp_subaccount_environment_instance.$environment_slug $1,$(_jq $environment '.id')"
         echo ""
     done
 }
