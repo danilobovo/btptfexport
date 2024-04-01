@@ -16,17 +16,17 @@ _check_btp_cli
 _print_subaccount_tf_code() {
     # Code to generate the terraform code for the subaccount
     sa_name=$(_jq $1 '.displayName')
-    sa_name_internal=$(echo $sa_name | tr '[ ]' '[\-]')
+    sa_name_slug=$(_slugify "$sa_name")
     sa_id=$(_jq $1 '.guid')
-    echo "data \"btp_subaccount\" \"$sa_name_internal\" {"
+    echo "data \"btp_subaccount\" \"$sa_name_slug\" {"
     echo "  id = \"$sa_id\""
     echo "}"
     echo ""
     echo "# ------------------------------------------------------------------------------------------------------"
     echo "# Creation of subaccount"
     echo "# ------------------------------------------------------------------------------------------------------"
-    echo "# terraform code for $sa_name_internal subaccount"
-    echo "resource \"btp_subaccount\" \"$sa_name_internal\" {"
+    echo "# terraform code for $sa_name_slug subaccount"
+    echo "resource \"btp_subaccount\" \"$sa_name_slug\" {"
     echo "  name         = \"$sa_name\""
     echo "  subdomain    = \"$(_jq $1 '.subdomain')\""
     echo "  region       = \"$(_jq $1 '.region')\""
@@ -37,27 +37,27 @@ _print_subaccount_tf_code() {
     echo "  usage        = \"$(_jq $1 '.usedForProduction')\""
     echo "}"
     echo ""
-    echo "# Command to import the state of $sa_name_internal subaccount"
-    echo "# terraform import btp_subaccount.$sa_name_internal $(_jq $1 '.guid')"
+    echo "# Command to import the state of $sa_name_slug subaccount"
+    echo "# terraform import btp_subaccount.$sa_name_slug $(_jq $1 '.guid')"
     echo ""
     # Code to generate the terraform code for the entitlements for the subaccount above
     echo "# ------------------------------------------------------------------------------------------------------"
     echo "# Creation of subaccount entitlements"
     echo "# ------------------------------------------------------------------------------------------------------"
-    echo "module \"sap-btp-entitlements-$sa_name_internal\" {"
+    echo "module \"sap-btp-entitlements-$sa_name_slug\" {"
     echo "  source       = \"aydin-ozcan/sap-btp-entitlements/btp\""
     echo "  version      = \"1.0.1\""
     echo ""
-    echo "  subaccount   = btp_subaccount.$sa_name_internal.id"
+    echo "  subaccount   = btp_subaccount.$sa_name_slug.id"
     echo ""
     echo "  entitlements = {"
     btp --format json list accounts/entitlement --subaccount $(_jq $1 '.guid') | jq -c '.quotas | group_by(.service) | map({key: .[0].service,value: map(.plan)})' | sed 's/\[{//;s/}\]//;s/},{/\n/g;s/","value"/":"value"/g' | awk -F: '{print "    "$2" = "$4}'
     echo "  }"
     echo "}"
     echo ""
-    echo "# Command to import $sa_name_internal entitlements"
+    echo "# Command to import $sa_name_slug entitlements"
     for ent in $(btp --format json list accounts/entitlement --subaccount $(_jq $1 '.guid') | jq -r '.quotas[] | @base64'); do
-        echo "# terraform import module.sap-btp-entitlements-$sa_name_internal.btp_subaccount_entitlement.entitlement[\\\"$(_jq $ent '.service')-$(_jq $ent '.plan')\\\"] $(_jq $1 '.guid'),$(_jq $ent '.service'),$(_jq $ent '.plan')"
+        echo "# terraform import module.sap-btp-entitlements-$sa_name_slug.btp_subaccount_entitlement.entitlement[\\\"$(_jq $ent '.service')-$(_jq $ent '.plan')\\\"] $(_jq $1 '.guid'),$(_jq $ent '.service'),$(_jq $ent '.plan')"
         # terraform import module.sap-btp-entitlements.btp_subaccount_entitlement.entitlement[\"application-logs-lite\"] 6673841d-0558-44fb-8fab-fcba02852479,application-logs,lite
     done
     echo ""

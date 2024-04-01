@@ -17,9 +17,9 @@ _check_btp_cli
 _generate_tf_code_for_role_collection_subaccount() {
     # Generate the terraform code for the subaccount with the given GUID
     sa_name=$(btp --format json get accounts/subaccounts $1 | jq -r '.displayName')
-    sa_name_internal=$(echo $sa_name | tr '[ ]' '[\-]')
+    sa_name_slug=$(_slugify "$sa_name")
     echo "# ------------------------------------------------------------------------------------------------------"
-    echo "# Creation of role collection for subaccount account $sa_name_internal"
+    echo "# Creation of role collection for subaccount account $sa_name_slug"
     echo "# ------------------------------------------------------------------------------------------------------"
     for rolecollection in $(btp --format json list security/role-collection -sa $1 | jq -r '.[] | @base64'); do
         # Code to generate the terraform code for the role
@@ -28,12 +28,12 @@ _generate_tf_code_for_role_collection_subaccount() {
         echo ""
         echo "# terraform code for $name role collection"
         echo "resource \"btp_subaccount_role_collection\" \"$name_slug\" {"
-        echo "  subaccount_id = btp_subaccount.$sa_name_internal.id"
+        echo "  subaccount_id = btp_subaccount.$sa_name_slug.id"
         echo "  name          = \"$name\""
         echo "  description   = \"$(_jq $rolecollection '.description')\""
         echo ""
         echo "  roles         = ["
-        for role in $(_jq $rolecollection '.roleReferences' | jq -r '.[] | @base64'); do
+        for role in $(_jq $rolecollection '.roleReferences' | jq -r '.[] | @base64' 2>/dev/null ); do
             echo "    {"
             echo "      name                 = \"$(_jq $role '.name')\""
             echo "      role_template_app_id = \"$(_jq $role '.roleTemplateAppId')\""

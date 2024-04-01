@@ -17,9 +17,9 @@ _check_btp_cli
 _generate_tf_code_for_role_collection_assignment_subaccount() {
     # Generate the terraform code for the subaccount with the given GUID
     sa_name=$(btp --format json get accounts/subaccounts $1 | jq -r '.displayName')
-    sa_name_internal=$(echo $sa_name | tr '[ ]' '[\-]')
+    sa_name_slug=$(_slugify "$sa_name")
     echo "# ------------------------------------------------------------------------------------------------------"
-    echo "# Creation of role collection assigment for subaccount $sa_name_internal"
+    echo "# Creation of role collection assigment for subaccount $sa_name_slug"
     echo "# ------------------------------------------------------------------------------------------------------"
     for user in $(btp --format json list security/user -sa $1 | jq -r '.[]'); do
         for rolecollection in $(btp --format json get security/user "$user" -sa $1 | jq -r '.roleCollections[] | @base64'); do
@@ -28,7 +28,7 @@ _generate_tf_code_for_role_collection_assignment_subaccount() {
             echo ""
             echo "# terraform code for $user and role collection $rc assignment"
             echo "resource \"btp_subaccount_role_collection_assignment\" \"$(_slugify $name)-$(_slugify "$rc")\" {"
-            echo "    subaccount_id        = btp_subaccount.$sa_name_internal.id"
+            echo "    subaccount_id        = btp_subaccount.$sa_name_slug.id"
             echo "    role_collection_name = \"$rc\""
             echo "    user_name            = \"$user\""
             echo "}"
