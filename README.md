@@ -13,20 +13,18 @@ At this moment the script is working for:
 
 - [BTP Subaccount Subcription](https://registry.terraform.io/providers/SAP/btp/latest/docs/resources/subaccount_subscription)
 
-- [BTP Subaccount Subcription](https://registry.terraform.io/providers/SAP/btp/latest/docs/resources/subaccount_subscription)
-
 - [BTP Subaccount Environment Instance](https://registry.terraform.io/providers/SAP/btp/latest/docs/resources/subaccount_environment_instance)
 
 - [BTP Subaccount Role Collection](https://registry.terraform.io/providers/SAP/btp/latest/docs/resources/subaccount_role_collection)
 
 - [BTP Subaccount Role Collection Assigment](https://registry.terraform.io/providers/SAP/btp/latest/docs/resources/subaccount_role_collection_assignment)
 
-- [BTP Glocal Account Role Collection](https://registry.terraform.io/providers/SAP/btp/latest/docs/resources/globalaccount_role_collection)
+- [BTP Global Account Role Collection](https://registry.terraform.io/providers/SAP/btp/latest/docs/resources/globalaccount_role_collection)
 
-- [BTP Glocal Account Role Collection Assigment](https://registry.terraform.io/providers/SAP/btp/latest/docs/resources/globalaccount_role_collection_assignment)
+- [BTP Global Account Role Collection Assigment](https://registry.terraform.io/providers/SAP/btp/latest/docs/resources/globalaccount_role_collection_assignment)
 
 > [!NOTE]
-> The scripts is getting the information for [Subaccount Service Instance](https://registry.terraform.io/providers/SAP/btp/latest/docs/resources/subaccount_service_instance), but I`m not able to import it in the terraform state due to restrictions stated in [Documentation](https://registry.terraform.io/providers/SAP/btp/latest/docs/resources/subaccount_service_instance#restriction).
+> The scripts is getting the information for [Subaccount Service Instance](https://registry.terraform.io/providers/SAP/btp/latest/docs/resources/subaccount_service_instance), but I'm not able to import it in the terraform state due to restrictions stated in [Documentation](https://registry.terraform.io/providers/SAP/btp/latest/docs/resources/subaccount_service_instance#restriction).
 
 ## Prerequisites
 

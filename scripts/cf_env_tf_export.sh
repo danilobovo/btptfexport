@@ -22,7 +22,7 @@ BASEDIR=$(dirname $0)
 . $BASEDIR/utils.sh
 
 _generate_tf_code_for_cloudfoundry() {
-    org_name=$1
+    org_name="$1"
     name_slug=$(_slugify "$org_name")
     echo ""
     echo "# ------------------------------------------------------------------------------------------------------"
@@ -33,7 +33,7 @@ _generate_tf_code_for_cloudfoundry() {
     echo "  name                     = \"$org_name\""
     echo "  delete_recursive_allowed = false"
     echo "}"
-    echo "# terraform import cloudfoundry_org.$name_slug $(cf org $org_name --guid)"
+    echo "# terraform import cloudfoundry_org.$name_slug $(cf org "$org_name" --guid)"
     echo ""
 
     org_managers=$(cf org-users "$org_name" | sed -n '/ORG MANAGER/,/^$/p' | sed '1 d;$ d' | sed -n 's/  \([^@]\+@[^[:space:]]*\).*/\"\1\"/p' | paste -sd ',')
@@ -48,7 +48,7 @@ _generate_tf_code_for_cloudfoundry() {
     echo "  auditors         = [ $org_auditors ]"
     echo "}"
 
-    cf target -o $org_name > /dev/null
+    cf target -o "$org_name" > /dev/null
     echo "# ------------------------------------------------------------------------------------------------------"
     echo "# Creation of cloudfoundry spaces on $org_name"
     echo "# ------------------------------------------------------------------------------------------------------"
@@ -62,19 +62,19 @@ _generate_tf_code_for_cloudfoundry() {
         echo "}"
         echo "# terraform import cloudfoundry_space.$space_name_slug $(cf space $space_name --guid)"
         echo ""
+
+        dev=$(cf space-users "$org_name" "$space_name" | sed -n '/DEVELOP/,/^$/p' | sed '1 d;$ d' | sed -n 's/  \([^@]\+@[^[:space:]]*\).*/\"\1\"/p' | paste -sd ',')
+        aud=$(cf space-users "$org_name" "$space_name" | sed -n '/AUDITOR/,/^$/p' | sed '1 d;$ d' | sed -n 's/  \([^@]\+@[^[:space:]]*\).*/\"\1\"/p' | paste -sd ',')
+        man=$(cf space-users "$org_name" "$space_name" | sed -n '/MANAGER/,/^$/p' | sed '1 d;$ d' | sed -n 's/  \([^@]\+@[^[:space:]]*\).*/\"\1\"/p' | paste -sd ',')
+
+        echo "# terraform code for $space_name space users"
+        echo "resource \"cloudfoundry_space_users\" \"$space_name_slug-users\" {"
+        echo "  space      = cloudfoundry_space.$space_name_slug.id"
+        echo "  managers   = [ $man ]"
+        echo "  developers = [ $dev ]"
+        echo "  auditors   = [ $aud ]"
+        echo "}"
     done
-
-    dev=$(cf space-users "$org_name" "$space_name" | sed -n '/DEVELOP/,/^$/p' | sed '1 d;$ d' | sed -n 's/  \([^@]\+@[^[:space:]]*\).*/\"\1\"/p' | paste -sd ',')
-    aud=$(cf space-users "$org_name" "$space_name" | sed -n '/AUDITOR/,/^$/p' | sed '1 d;$ d' | sed -n 's/  \([^@]\+@[^[:space:]]*\).*/\"\1\"/p' | paste -sd ',')
-    man=$(cf space-users "$org_name" "$space_name" | sed -n '/MANAGER/,/^$/p' | sed '1 d;$ d' | sed -n 's/  \([^@]\+@[^[:space:]]*\).*/\"\1\"/p' | paste -sd ',')
-
-    echo "# terraform code for $space_name space users"
-    echo "resource \"cloudfoundry_space_users\" \"$space_name_slug-users\" {"
-    echo "  space      = cloudfoundry_space.$space_name_slug.id"
-    echo "  managers   = [ $man ]"
-    echo "  developers = [ $dev ]"
-    echo "  auditors   = [ $aud ]"
-    echo "}"
 }
 
 
@@ -115,11 +115,11 @@ case $1 in
             echo "You must provide the org name"
             exit 1
         fi
-        if [ ! $(cf orgs | grep $2) ]; then
+        if [ -z "$(cf orgs | grep "^$2$")" ]; then
             echo "The org $2 does not exist"
             exit 1
         fi
-        _generate_tf_code_for_cloudfoundry $2
+        _generate_tf_code_for_cloudfoundry "$2"
         ;;
     *)
         _usage
